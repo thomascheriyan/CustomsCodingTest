@@ -14,4 +14,4 @@ This project automates test cases for the TradeMe website using both UI (Seleniu
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/TradeMeAutomation.git
+   git clone https://github.com/thomascheriyan/CustomsCodingTest.git or https://github.com/thomascheriyan/CustomsCodingTest.git
