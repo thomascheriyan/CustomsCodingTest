@@ -1,7 +1,4 @@
-# CustomsCodingTest
-BDD Web &amp; API testing suite for verifying certain scenarios in the TradeMe website and TradeMe Used Cars API, using Cucumber, Selenium Webdriver and RestAssured. Includes feature files and step definitions to test response data, validate brand count and names
-
-## Overview
+## Project Overview
 This project automates test cases for the TradeMe website using both UI (Selenium WebDriver) and API (RestAssured) testing. It is developed using Java and Cucumber BDD framework with a Page Object Model structure.
 
 ## Prerequisites
