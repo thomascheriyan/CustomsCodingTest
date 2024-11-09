@@ -6,7 +6,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
-		features = "src/test/features/API",
+		features = {"src/test/features/API", "src/test/features/UI"},
 		glue = "stepDefinitions",
 		plugin = {"pretty","html: cucumber-html-reports", "json:target/cucumber.json"},
 		publish = true

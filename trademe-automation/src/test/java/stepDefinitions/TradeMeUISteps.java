@@ -1,77 +1,102 @@
 package stepDefinitions;
 
-import io.cucumber.java.en.*;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
+import java.time.Duration;
+
 import org.junit.Assert;
-import java.util.List;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import config.Driver;
+import io.cucumber.java.After;
+import io.cucumber.java.en.And;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import pageModels.ListingDetailsPage;
+import pageModels.SearchResultsPage;
+import pageModels.TradeMeHomePage;
 
 public class TradeMeUISteps {
+	private WebDriver _driver = Driver.getDriver();
+	private TradeMeHomePage _tradeMeHomePage = new TradeMeHomePage(_driver);
+	private SearchResultsPage _searchResultsPage = new SearchResultsPage(_driver);
+	private ListingDetailsPage _listingDetailsPage = new ListingDetailsPage(_driver);
 
-    WebDriver driver;
-    
-    @Given("the TradeMe website {string} is up and running")
-    public void theTradeMeWebsiteIsUpAndRunning(String url) {
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.get(url);
-    }
+	@Given("the TradeMe website {string} is up and running")
+	public void theTradeMeWebsiteIsUpAndRunning(String url) {
+		int attempts = 0;
+	    int maxRetries = 3;
+	    boolean isPageLoaded = false;
 
-    @Given("I navigate to the Trade Me website {string}")
-    public void iNavigateToTheTradeMeWebsite(String url) {
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.get(url);
-    }
+	    while (attempts < maxRetries && !isPageLoaded) {
+	        try {
+	            if (!_driver.getCurrentUrl().equals(url)) {
+	                _driver.get(url);
+	                WebDriverWait wait = new WebDriverWait(_driver, Duration.ofSeconds(10));
+	        	    wait.until(ExpectedConditions.urlToBe(url)); // Wait until the URL is fully loaded
+	        	  
+	        	    //Check page title
+	        	    String pageTitle = _driver.getTitle();
+	        	    Assert.assertTrue("TradeMe webpage is not reachable!", pageTitle.contains("Trade Me"));
+	            }
+	            isPageLoaded = true; // Exit loop if page is loaded
+	        } 
+	        catch (Exception e) {
+	            attempts++;
+	            if (attempts == maxRetries) {
+	                throw new RuntimeException("Failed to load the TradeMe sandbox after " + maxRetries + " attempts", e);
+	            }
+	        }
+	    }	    
+	}
 
-    @When("I enter {string} in the search field and click on Search")
-    public void iEnterInTheSearchFieldAndClickOnSearch(String searchTerm) {
-        WebElement searchField = driver.findElement(By.id("searchString")); // ID may vary
-        searchField.sendKeys(searchTerm);
-        driver.findElement(By.id("searchButton")).click(); // Button ID may vary
-    }
+	@Given("I navigate to the TradeMe website {string}")
+	public void iNavigateToTheTradeMeWebsite(String url) {
+	    if (!_driver.getCurrentUrl().equals(url)) {
+	        _driver.get(url);
+	    }
+	}
 
-    @When("I select the category as {string}")
-    public void iSelectTheCategoryAs(String category) {
-        WebElement categoryDropdown = driver.findElement(By.id("categoryDropdown")); // ID may vary
-        categoryDropdown.click();
-        driver.findElement(By.xpath("//option[text()='" + category + "']")).click();
-    }
+	@When("I enter {string} in the search field and click on Search")
+	public void iEnterInTheSearchFieldAndClickOnSearch(String query) {
+		_tradeMeHomePage.enterSearchQuery(query);
+		_tradeMeHomePage.clickSearchButton();
+	}
 
-    @When("I set the location region as {string}")
-    public void iSetTheLocationRegionAs(String region) {
-        WebElement regionDropdown = driver.findElement(By.id("regionDropdown")); // ID may vary
-        regionDropdown.click();
-        driver.findElement(By.xpath("//option[text()='" + region + "']")).click();
-    }
+	@And("I select the category as {string}")
+	public void iSelectTheCategoryAs(String category) {
+		_tradeMeHomePage.selectCategory(category);
+	}
 
-    @Then("I verify the number of listings displayed")
-    public void iVerifyTheNumberOfListingsDisplayed() {
-        List<WebElement> listings = driver.findElements(By.cssSelector(".listing-card")); // CSS selector may vary
-        System.out.println("Number of listings displayed: " + listings.size());
-        Assert.assertTrue("Listings are not displayed", listings.size() > 0);
-    }
+	@And("I set the location region as {string}")
+	public void iSetTheLocationRegionAs(String region) {
+		_tradeMeHomePage.selectRegion(region);
+	}
 
-    @When("I select the first listing")
-    public void iSelectTheFirstListing() {
-        WebElement firstListing = driver.findElement(By.cssSelector(".listing-card")).findElement(By.tagName("a"));
-        firstListing.click();
-    }
+	@Then("I verify the number of listings displayed is {int}")
+	public void iVerifyTheNumberOfListingsDisplayed(int numberOfListings) {
+		int searchResultsCount = _searchResultsPage.getSearchResultListingsCount();
+		Assert.assertEquals("Listings are not displayed or does not match the expected count", searchResultsCount,
+				numberOfListings);
 
-    @Then("I verify the key details of the listing")
-    public void iVerifyTheKeyDetailsOfTheListing() {
-        WebElement address = driver.findElement(By.cssSelector(".listing-address")); // CSS selector may vary
-        WebElement beds = driver.findElement(By.cssSelector(".listing-beds")); // CSS selector may vary
-        WebElement agentName = driver.findElement(By.cssSelector(".agent-name")); // CSS selector may vary
+	}
 
-        Assert.assertNotNull("Address not displayed", address);
-        Assert.assertNotNull("Beds information not displayed", beds);
-        Assert.assertNotNull("Agent's name not displayed", agentName);
+	@Then("I select the first listing and verify the key details")
+	public void iSelectTheFirstListingAndVerifyTheKeyDetails() {
+		_searchResultsPage.selectFirstListing();
+		
+//		String address = _listingDetailsPage.getAddressDetails();
+//		String beds = _listingDetailsPage.getBedsDetails();
+//		String agentName = _listingDetailsPage.getAgentName();
+		
+		Assert.assertNotNull("Address not displayed", _listingDetailsPage.getAddressDetails());
+		Assert.assertNotNull("Beds information not displayed", _listingDetailsPage.getBedsDetails());
+		Assert.assertNotNull("Agent's name not displayed", _listingDetailsPage.getAgentName());
+	}
 
-        System.out.println("Address: " + address.getText());
-        System.out.println("Beds: " + beds.getText());
-        System.out.println("Agent Name: " + agentName.getText());
-    }
+	@After
+	public void tearDown() {
+		Driver.quitDriver();
+	}
 }
