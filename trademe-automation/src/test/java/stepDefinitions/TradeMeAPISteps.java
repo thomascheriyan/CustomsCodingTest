@@ -3,24 +3,20 @@ package stepDefinitions;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.*;
 import io.restassured.RestAssured;
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-
-import java.util.Arrays;
 import java.util.List;
 
 public class TradeMeAPISteps {
 
-	private static Response response;
-	private static int expectedCarBrandCount = 0;
+	private Response response;
+	private int expectedCarBrandCount = 0;
 
 	@Before
-	public static void setupExpectedCarCount() {
+	public void setupExpectedCarCount() {
 		RequestSpecification request = RestAssured.given();
 		response = request.get();
 		// JsonPath responseJsonPath = response.jsonPath();
